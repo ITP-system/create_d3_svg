@@ -26,8 +26,7 @@ const svg = main
   .attr("xmlns", "http://www.w3.org/2000/svg")
   .attr("id", "svg")
   .attr("width", 200)
-  .attr("height", 200)
-  .attr("xmlns:xlink", "http://www.w3.org/2000/svg");
+  .attr("height", 200);
 
 svg.style("background-color", "#00ff00");
 
@@ -44,44 +43,66 @@ svg
 const svg_element = document.querySelector("#svg");
 // console.log("d3 SVG\n", svg_element.outerHTML);
 
-const circle_element = svg_element.querySelector("#circle");
-const circle_style = document.defaultView.getComputedStyle(
-  circle_element,
-  null
-);
-console.log("circle_style['fill']", circle_style["fill"]);
-fs.writeFileSync("out.svg", svg_element.outerHTML);
+function write_svg(svg_elm, svg_name) {
+  const circle_element = svg_elm.querySelector("#circle");
+  const circle_style = document.defaultView.getComputedStyle(
+    circle_element,
+    null
+  );
 
-var all_svg_element = svg_element.querySelectorAll("circle");
+  console.log(svg_name, "circle_style['fill']", circle_style["fill"]);
+  fs.writeFileSync(svg_name + ".svg", svg_elm.outerHTML);
+}
 
-all_svg_element.forEach(function (value, index) {
-  // console.log("value.outerHTML(before)", value.outerHTML);
-  // console.log("index", index);
-  let style = document.defaultView.getComputedStyle(value, null);
-  // console.log("style:\n", style);
+function copy_style(svg_elm) {
+  var all_svg_element = svg_elm.querySelectorAll("circle");
 
-  if (style.length !== 0) {
-    for (let i = 0; i < style.length; i++) {
-      let style_key = style[i];
-      let style_value = style[style_key];
-      value.setAttribute(style_key, style_value);
-      // console.log(
-      //   "i:",
-      //   i,
-      //   ", style_key:",
-      //   style_key,
-      //   ", style_value:",
-      //   style_value
-      // );
+  all_svg_element.forEach(function (value, index) {
+    // console.log("value.outerHTML(before)", value.outerHTML);
+    // console.log("index", index);
+    let style = document.defaultView.getComputedStyle(value, null);
+    // console.log("style:\n", style);
+
+    if (style.length !== 0) {
+      for (let i = 0; i < style.length; i++) {
+        let style_key = style[i];
+        let style_value = style[style_key];
+        value.setAttribute(style_key, style_value);
+        // console.log(
+        //   "i:",
+        //   i,
+        //   ", style_key:",
+        //   style_key,
+        //   ", style_value:",
+        //   style_value
+        // );
+      }
     }
-  }
-  // console.log("value.outerHTML(after )", value.outerHTML);
-});
+    // console.log("value.outerHTML(after )", value.outerHTML);
+  });
+}
 
-const circle_element2 = svg_element.querySelector("#circle");
-const circle_style2 = document.defaultView.getComputedStyle(
-  circle_element2,
-  null
+write_svg(svg_element, "out1");
+
+copy_style(svg_element);
+write_svg(svg_element, "out2");
+
+// loadイベントを待つとDOMにスタイルが適用される
+window.addEventListener(
+  "load",
+  () => {
+    write_svg(svg_element, "out3");
+    // loadイベントの後にCSSのスタイルをインラインとしてコピーすると
+    // CSSのスタイルをSVGとして出力可能になる。
+    copy_style(svg_element);
+    write_svg(svg_element, "out4");
+  },
+  false
 );
-console.log("circle_style2['fill']", circle_style2["fill"]);
-fs.writeFileSync("out2.svg", svg_element.outerHTML);
+
+// 以下でも同様の動作をする
+// window.onload = function () {
+//   write_svg(svg_element, "out3");
+//   copy_style(svg_element);
+//   write_svg(svg_element, "out4");
+// };
